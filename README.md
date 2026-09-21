@@ -27,8 +27,7 @@ Personal documentation, architectural specifications, security hardening policie
 | **Automated OS Updates** | Maintenance | ✅ Working | `unattended-upgrades` configured for background CVE patches |
 | **Google Drive Backup Sync** | Backups | ✅ Working | `rclone crypt` with AES-256 overlay active over `gdrive:server-backups/`, verified with live encryption tests |
 | **Local Snapshot Script** | Backups | ✅ Working | `/usr/local/bin/backup-stacks.sh` active; creates atomic local tarballs with 7-day retention & offsite sync |
-| **Cloudflare DNS & Custom Domain** | DNS | ⏳ Planned | `briefnodeops.com` setup on Cloudflare DNS; API token for DNS-01 ACME automated SSL |
-| **Caddy Reverse Proxy** | Infrastructure | ⏳ Planned | Custom build with `caddy-dns/cloudflare` plugin for internal HTTPS (`*.briefnodeops.com`) |
+| **Reverse Proxy (Caddy / Nginx)** | Infrastructure | ⏳ Planned | Internal HTTPS reverse proxy for local container services |
 | **docker-socket-proxy** | Security | ⏳ Planned | API isolation to shield `/var/run/docker.sock` |
 | **Vaultwarden** | Applications | ⏳ Planned | Password vault, WebSocket sync, SQLite backup hook |
 | **Joplin Server** | Applications | ⏳ Planned | Multi-device note syncing backend |
@@ -87,7 +86,6 @@ Personal documentation, architectural specifications, security hardening policie
 ```
 
 - **Host IP (LAN):** `192.168.1.160` (Static DHCP via router)
-- **Internal Domain (Planned):** `*.briefnodeops.com` (To be managed via Cloudflare DNS-01 ACME + Caddy reverse proxy)
 - **VPN:** WireGuard (`51820/udp`) for encrypted off-site management
 - **Host Firewall (UFW):**
   - Inbound allowed: WireGuard (`51820/udp`), DHCP (`67/udp`), DNS (`53/udp/tcp` from `192.168.1.0/24`), SSH (Ed25519 keys only).
