@@ -112,80 +112,7 @@ A strict **3-2-1 Disaster Recovery Policy** is enforced:
 
 ---
 
-## 4. Systematic Troubleshooting & 5-Layer Triage Hierarchy
-
-When diagnosing any outage, degraded service, or connection failure, move systematically upwards from Layer 1 to Layer 5. Never guess or jump ahead until lower layers are validated.
-
-```text
-[Layer 5] Protocol & Application Handshake  ──> curl -iv, dig
-      ▲
-[Layer 4] Firewall & Network Reachability  ──> sudo ufw status verbose, dmesg UFW BLOCK
-      ▲
-[Layer 3] Listening Sockets & Binding       ──> sudo ss -tulpn
-      ▲
-[Layer 2] Process Health & Error Logs       ──> docker ps -a, docker logs, journalctl -u -e
-      ▲
-[Layer 1] Hardware, Storage & Kernel Health ──> df -h, free -h, dmesg -T (OOM killer)
-```
-
-### The 5 Layers in Detail:
-1. **Layer 1: Hardware, Disk & Memory (The Silent Killers)**
-   - `df -h`: Check if root `/` is at 100%. Full disk breaks locks, crashes SQLite, and fails SSH.
-   - `free -h`: Check available RAM and `zram` swap usage.
-   - `sudo dmesg -T | grep -i -E "oom|killed process"`: Verify if the Linux OOM Killer terminated a process with `kill -9`.
-2. **Layer 2: Process Health & Container Logs**
-   - `docker ps -a`: Inspect container status. Look for exit codes:
-     - `Exited (0)`: Clean exit.
-     - `Exited (1)`: Application crash (syntax error, missing config, wrong DB credentials).
-     - `Exited (137)`: Killed by SIGKILL / OOM Killer ($128 + 9 = 137$) due to memory limits.
-   - `docker logs --tail 50 <container>`: View dying error output.
-   - `sudo journalctl -u <service> -n 50 -e`: View host-level systemd service failures.
-3. **Layer 3: Sockets & The "Binding" Trap**
-   - `sudo ss -tulpn | grep <port>`: Verify who is listening on the port.
-   - **Local Address Check:**
-     - `0.0.0.0:<port>` or `*:<port>`: Listening on all interfaces (reachable across LAN/VPN).
-     - `127.0.0.1:<port>`: Bound **only to localhost** (unreachable by external devices; returns instant connection refused).
-4. **Layer 4: Firewall & Network Reachability**
-   - `sudo ufw status verbose`: Check if the destination port is explicitly allowed.
-   - `sudo dmesg -T | grep -i "\[UFW BLOCK\]"`: Live verification of packets dropped by the kernel firewall.
-5. **Layer 5: Protocol & Application Handshakes**
-   - `curl -iv https://<service>`: Verbose protocol inspection (DNS resolution, TCP connection, TLS handshake, HTTP status headers).
-   - `dig @127.0.0.1 <domain> +noall +answer`: Direct DNS resolution verification.
-
----
-
-### Golden Diagnostic Signatures (Instant Root-Cause Identification)
-
-| Symptom / Error | Timing | Underlying Technical Mechanism | Responsible Layer |
-| :--- | :--- | :--- | :--- |
-| **Connection Refused** | Instant (<1ms) | Kernel actively replied with TCP `RST`. Service is not running or bound to `127.0.0.1`. | Layer 3 (Socket) |
-| **Connection Timed Out** | 15–30s delay | Kernel firewall (UFW) silently `DROP`ped the TCP `SYN` packet into a black hole. | Layer 4 (Firewall) |
-| **HTTP 502 Bad Gateway** | Instant (<100ms) | Reverse proxy is alive, but the upstream backend container is dead or unreachable. | Layer 2 (Process) |
-| **Database Disk Malformed** | On query/boot | SQLite database was copied via `cp`/`tar` during live WAL transactions instead of `.backup`. | Layer 1 (Storage) |
-
----
-
-### Flag Mnemonics Cheat Sheet (Flags as Words)
-
-- **`ss -tulpn`**:
-  - `-t`: **T**CP
-  - `-u`: **U**DP
-  - `-l`: **L**istening sockets only
-  - `-p`: **P**rocess name and PID
-  - `-n`: **N**umeric port numbers (avoids slow DNS service name resolution)
-- **`tar -czf <archive> <source>`**:
-  - `-c`: **C**reate archive
-  - `-z`: g**Z**ip compression
-  - `-f`: **F**ile name destination
-- **`df -h` / `free -h`**:
-  - `-h`: **H**uman-readable (GB/MB instead of raw block/byte counts)
-- **`docker logs -f --tail 50 <name>`**:
-  - `-f`: **F**ollow live output
-  - `--tail 50`: Last 50 lines only
-
----
-
-## 5. Troubleshooting & Incident Log (Post-Mortems)
+## 4. Incident Log & Operational Post-Mortems
 
 | Date | Issue / Symptom | Root Cause | Resolution / Prevention |
 | :--- | :--- | :--- | :--- |
@@ -197,7 +124,7 @@ When diagnosing any outage, degraded service, or connection failure, move system
 
 ---
 
-## 6. Repository Structure
+## 5. Repository Structure
 
 ```
 homelab-ops/
