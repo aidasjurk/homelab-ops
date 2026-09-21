@@ -12,7 +12,10 @@
 set -euo pipefail
 
 # Environment & Authentication
-export RCLONE_CONFIG="/home/aidas/.config/rclone/rclone.conf"
+# Dynamically locate user rclone config even when executed via sudo/root
+REAL_USER="${SUDO_USER:-$USER}"
+USER_HOME=$(getent passwd "${REAL_USER}" | cut -d: -f6)
+export RCLONE_CONFIG="${RCLONE_CONFIG:-${USER_HOME}/.config/rclone/rclone.conf}"
 
 BACKUP_SRC="/opt/stacks"
 BACKUP_DEST="/var/backups/stacks"
