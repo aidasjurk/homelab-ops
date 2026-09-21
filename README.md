@@ -46,11 +46,10 @@ Personal documentation, architectural specifications, security hardening policie
 - **RAM:** 8 GB DDR4 (Optimized via `zram` with `zstd` compression yielding ~12–14 GB effective memory pool)
 - **Primary Storage:** Samsung 970 Pro 500 GB NVMe SSD (MLC NAND for sustained high write endurance)
 - **Networking:** Intel® I219-LM Gigabit Ethernet (1 Gbps)
-- **Power & Thermals:**
-  - Deployed horizontally without DVD optical cage to maximize passive airflow.
-  - Power and NIC activity LEDs physically masked with electrical tape to ensure dark-room operation without triggering Dell chassis POST alert halts.
-  - CPU Governor: `powersave` tuned with Intel SpeedShift EPP `power`.
-  - Kernel tuning: `powertop.service` automatically adjusts PCIe link power states upon boot.
+- **Power Management & Efficiency:**
+  - Configured for silent, energy-efficient 24/7 headless operation (~15–25W low power profile).
+  - CPU Governor: `powersave` tuned with Intel SpeedShift Energy Performance Preference (`power`).
+  - Kernel tuning: `powertop.service` automatically optimizes PCIe link power states upon boot.
 
 ---
 
@@ -193,7 +192,6 @@ When diagnosing any outage, degraded service, or connection failure, move system
 | Date | Issue / Symptom | Root Cause | Resolution / Prevention |
 | :--- | :--- | :--- | :--- |
 | *2026-09* | Android phones show "Connected, no internet" on Wi-Fi | Android "Private DNS" queries port `853/tcp` (DoT). UFW dropped packets, causing 15s timeout before falling back. | Added UFW `reject out 853/tcp` rule so phones immediately fall back to local AdGuard port 53. |
-| *2026-09* | OptiPlex LED light distraction | Hardware LEDs can not be turned off in Dell BIOS; cutting wires causes POST alert halts. | Covered physically with electrical tape to avoid triggering chassis/cable error halts. |
 | *2026-09* | Live database backup corruption risk | Copying active SQLite `db.sqlite3` during container writes can result in malformed files. | Mandated SQLite `.backup` API execution before archiving. |
 | *2026-09-17* | `rclone mkdir` failed with `403 ACCESS_TOKEN_SCOPE_INSUFFICIENT` | Configured scope as `drive.readonly` (read-only), which disallowed directory and file creation on Google Drive. | Updated remote scope to `drive` (full write access) and regenerated OAuth token via `rclone authorize`. |
 | *2026-09-18* | `backup-stacks.sh` failed with `rclone.conf not found in /root/.config` | Script executed under `sudo`/root, but `rclone config` was created in `/home/aidas/.config/rclone/rclone.conf`. | Added `export RCLONE_CONFIG="/home/aidas/.config/rclone/rclone.conf"` to the backup script. |
