@@ -1,0 +1,6 @@
+*.env
+*.key
+*.pem
+*.token
+rclone.conf
+*.log
