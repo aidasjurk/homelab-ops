@@ -4,7 +4,7 @@
 [![Hardware: i5--8500](https://img.shields.io/badge/Hardware-Intel_i5--8500_|_Samsung_970_Pro-0071c5?logo=intel&logoColor=white)](#1-hardware--physical-setup)
 [![Memory: zram/zstd](https://img.shields.io/badge/Memory-8GB_DDR4_+_zram(zstd)-blueviolet)](#1-hardware--physical-setup)
 [![Security: UFW Hardened](https://img.shields.io/badge/Security-UFW_&_SSH_Hardened-success?logo=gnubash&logoColor=white)](#2-network-topology--security)
-[![DNS: AdGuard + Cloudflare](https://img.shields.io/badge/DNS-AdGuard_Home_+_Cloudflare-f38020?logo=cloudflare&logoColor=white)](#2-network-topology--security)
+[![DNS: AdGuard Home](https://img.shields.io/badge/DNS-AdGuard_Home_(DoH)-success?logo=adguard&logoColor=white)](#2-network-topology--security)
 [![Backups: 3-2-1 Strategy](https://img.shields.io/badge/Backups-Rclone_AES--256_Encrypted-blue?logo=google-drive&logoColor=white)](#3-storage--backup-strategy)
 
 Personal documentation, architectural specifications, security hardening policies, disaster recovery automation, and systematic triage runbook for a headless Dell OptiPlex 7070 SFF production home server.
@@ -24,10 +24,10 @@ Personal documentation, architectural specifications, security hardening policie
 | **UFW Firewall** | Network | ✅ Working | Default deny inbound, Docker forwarding allowed |
 | **Android Private DNS Fix** | Network | ✅ Working | Port `853/tcp` rejected; mobile clients fall back to local port 53 |
 | **AdGuard Home** | DNS | ✅ Working | Local DNS filter active; upstream encrypted DoH/DoT (Quad9, Cloudflare) |
-| **Cloudflare DNS & Custom Domain** | DNS | ✅ Working | `briefnodeops.com` active on Cloudflare; API token for DNS-01 ACME |
 | **Automated OS Updates** | Maintenance | ✅ Working | `unattended-upgrades` configured for background CVE patches |
 | **Google Drive Backup Sync** | Backups | ✅ Working | `rclone crypt` with AES-256 overlay active over `gdrive:server-backups/`, verified with live encryption tests |
 | **Local Snapshot Script** | Backups | ✅ Working | `/usr/local/bin/backup-stacks.sh` active; creates atomic local tarballs with 7-day retention & offsite sync |
+| **Cloudflare DNS & Custom Domain** | DNS | ⏳ Planned | `briefnodeops.com` setup on Cloudflare DNS; API token for DNS-01 ACME automated SSL |
 | **Caddy Reverse Proxy** | Infrastructure | ⏳ Planned | Custom build with `caddy-dns/cloudflare` plugin for internal HTTPS (`*.briefnodeops.com`) |
 | **docker-socket-proxy** | Security | ⏳ Planned | API isolation to shield `/var/run/docker.sock` |
 | **Vaultwarden** | Applications | ⏳ Planned | Password vault, WebSocket sync, SQLite backup hook |
@@ -88,7 +88,7 @@ Personal documentation, architectural specifications, security hardening policie
 ```
 
 - **Host IP (LAN):** `192.168.1.160` (Static DHCP via router)
-- **Internal Domain:** `*.briefnodeops.com` (Managed via Cloudflare DNS-01 ACME)
+- **Internal Domain (Planned):** `*.briefnodeops.com` (To be managed via Cloudflare DNS-01 ACME + Caddy reverse proxy)
 - **VPN:** WireGuard (`51820/udp`) for encrypted off-site management
 - **Host Firewall (UFW):**
   - Inbound allowed: WireGuard (`51820/udp`), DHCP (`67/udp`), DNS (`53/udp/tcp` from `192.168.1.0/24`), SSH (Ed25519 keys only).
